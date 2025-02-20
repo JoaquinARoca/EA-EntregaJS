@@ -32,6 +32,8 @@ Asegúrate de tener instalados los siguientes programas en tu sistema:
 │   ├── 7-secuencial-promises.js
 │   ├── 8-async.js
 │   └── 9-secuencial-async.js
+├── 5-entregaS2
+│   └── 1-Seminario2.js    
 ├── LICENSE
 └── README.md
 ```
