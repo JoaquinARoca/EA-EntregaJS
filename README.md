@@ -5,8 +5,10 @@
 Asegúrate de tener instalados los siguientes programas en tu sistema:
 
 - [Node.js](https://nodejs.org/) (versión 14.x o superior)
-##Fuente IA Utilizadas
+
+## Fuente IA Utilizadas
 - ChatGPT
+
 ## Estrutura
 
 ```
