@@ -1,109 +1,53 @@
-/* 
-======================================================
-                    Seminari 2
-======================================================
-*/ 
-
-//URL base API JSONholder
+// URL base de la API JSONPlaceholder
 const API_URL = 'https://jsonplaceholder.typicode.com';
 
-// Función para obtener un usuario de una API
-function getUser(userId) {
-    return fetch(`${API_URL}/users/${userId}`)
-      .then(response => {
-        if (!response.ok) throw new Error("Error al obtener el usuario");
-        return response.json();
-      });
-  }
+// Función para obtener datos de un usuario específico
+async function getUser(userId) {
+    const response = await fetch(`${API_URL}/users/${userId}`);
+    return response.json();
+}
 
-  //Funcion para obtener todos los usuarios
-  function getAllUser() {
-    return fetch(`${API_URL}/users`)
-      .then(response => {
-        if (!response.ok) throw new Error("Error al obtener el usuario");
-        return response.json();
-      });
-  }
-  // Función para obtener los posts de un usuario
-  function getPosts(userId) {
-    return fetch(`${API_URL}/posts?userId=${userId}`)
-      .then(response => {
-        if (!response.ok) throw new Error("Error al obtener los posts");
-        return response.json();
-      });
-  }
-  
-  // Función para obtener los comentarios del post
-  function getComments(postId) {
-    return fetch(`${API_URL}/comments?postId=${postId}`)
-      .then(response => {
-        if (!response.ok) throw new Error("Error al obtener comentarios del post");
-        return response.json();
-      });
-  }
-  //Funcion para obtener los titulos de los post que comienzan por e
-  function getTitlesWithe(posts){
-    return posts
-    .filter(post => post.title[0]=="e")
-    .map(post => post.title)
-    
-  }
+// Función para obtener los posts de un usuario
+async function getUserPosts(userId) {
+    const response = await fetch(`${API_URL}/posts?userId=${userId}`);
+    return response.json();
+}
 
-  function filterNamePopularPosts(posts, comments) {
-    // Creamos un array donde cada elemento es un objeto con el post y la cantidad de comentarios asociados
-    const popularPost = posts
-    .map(post => {
-      const count = comments.filter(comment => comment.postId === post.id).length;
-      return { title: post.title, count };
-    })
-    .filter(post => post.title[0] === 'e')
-    .reduce((max, curr) => {
-     return curr.count > max.count ? curr : max;
-    }, { title: null, count: -1 });
-  
-    return popularPost.title;
-  }
-  
-  // Función para ordenar los usuarios por nombre alfabéticamente
-  function usersSortedByName(users) {
-    return users.sort((a, b) => a.name.localeCompare(b.name)).map(user => user.name);
-  }
+// Función para obtener comentarios de los posts
+async function getPostComments(postId) {
+    const response = await fetch(`${API_URL}/comments?postId=${postId}`);
+    return response.json();
+}
 
-  
-
-  async function fetchOrderDetails() {
+// Función principal para obtener y procesar los datos
+async function main(userId) {
     try {
-      const user = await getUser(1);
-      console.log("user id-1: ",user)
-      const posts = await getPosts(user.id);
-      console.log("user id-1 posts: ",posts)
-      const comments = await getComments(posts[0].id);
-      console.log("comments of post 0:",comments)
+        const user = await getUser(userId);
+        console.log('Usuario:', user);
+        
+        const posts = await getUserPosts(userId);
+        console.log('Posts:', posts);
+        
+        // Obtener comentarios de todos los posts
+        const commentsPromises = posts.map(post => getPostComments(post.id));
+        const commentsArray = await Promise.all(commentsPromises);
+        console.log('Comentarios:', commentsArray);
 
-      const commentsPromises = posts.map(post => getComments(post.id));
-      const commentsArrays = await Promise.all(commentsPromises);
-      const allComments = commentsArrays.flat();
+        // Usar map para extraer los títulos de los posts
+        const postTitles = posts.map(post => post.title);
+        console.log('Títulos de los posts:', postTitles);
 
-      console.log("Comentarios del primer post:", comments);
-      console.log("------------------------------")
-      // Aplicar funciones de alto nivel
-      const postTitles = getTitlesWithe(posts);
-      console.log("Títulos de los posts con 'e':", postTitles);
+        // Usar filter para encontrar posts con más de 5 comentarios
+        const popularPosts = posts.filter((post, index) => commentsArray[index].length > 5);
+        console.log('Posts con más de 5 comentarios:', popularPosts);
 
-      const comentsByName = comments.map(comments => comments.name)
-      
-      const popularPostTitle = filterNamePopularPosts(posts, allComments);
-      console.log("Título del post con más comentarios con 'e':", popularPostTitle);
-
-      const users = await getAllUser();
-      console.log("Usuarios por orden alfabetico: ",usersSortedByName(users))
-
-      
-      console.log("Fin");
+        // Usar reduce para contar el total de comentarios
+        const totalComments = commentsArray.reduce((acc, comments) => acc + comments.length, 0);
+        console.log('Total de comentarios:', totalComments);
     } catch (error) {
-      console.error("Error:", error);
+        console.error('Error:', error);
     }
-  }
+}
 
-fetchOrderDetails();
-
+// Llamar a la función principal con un ID de usuario específico
+main(1);
